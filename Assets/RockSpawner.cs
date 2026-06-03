@@ -17,9 +17,9 @@ public class RockSpawner : MonoBehaviour
         float randomX;
         int zone = Random.Range(0, 3);
 
-     if (zone == 0) randomX = Random.Range(-13f, -3f);      // 왼쪽
-else if (zone == 1) randomX = Random.Range(-3f, 3f);   // 가운데
-else randomX = Random.Range(3f, 13f);                  // 오른쪽
+        if (zone == 0) randomX = Random.Range(-13f, -3f);      // 왼쪽
+        else if (zone == 1) randomX = Random.Range(-3f, 3f);   // 가운데
+        else randomX = Random.Range(3f, 13f);                  // 오른쪽
 
         Vector3 spawnPos = new Vector3(
             transform.position.x + randomX,
