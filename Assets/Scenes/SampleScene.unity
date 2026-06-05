@@ -260,9 +260,9 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d29dc2b9c3193154084dcd231ea3ab6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rockPrefab: {fileID: 613071358223305577, guid: e13ac69c3919cb440ba2d7b1db3f6724, type: 3}
+  rockPrefabs:
+  - {fileID: 613071358223305577, guid: e13ac69c3919cb440ba2d7b1db3f6724, type: 3}
   interval: 1.5
-  spawnRangeX: 15
 --- !u!65 &326272149
 BoxCollider:
   m_ObjectHideFlags: 0
@@ -1117,9 +1117,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: d29dc2b9c3193154084dcd231ea3ab6e, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  rockPrefab: {fileID: 613071358223305577, guid: e13ac69c3919cb440ba2d7b1db3f6724, type: 3}
+  rockPrefabs:
+  - {fileID: 613071358223305577, guid: e13ac69c3919cb440ba2d7b1db3f6724, type: 3}
+  - {fileID: 613071358223305577, guid: 5b52028fdecbc5742bc59d261be8212e, type: 3}
+  - {fileID: 613071358223305577, guid: 96623b255a95d874bb1b80072f291cb0, type: 3}
   interval: 1.5
-  spawnRangeX: 15
 --- !u!65 &1288207305
 BoxCollider:
   m_ObjectHideFlags: 0
