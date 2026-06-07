@@ -169,15 +169,30 @@ public static class GameSystemsBuilder
             new PlayerTint.Tier { name = "원시인", minIQ = 60,  color = new Color(0.572f, 0.397f, 0.236f) },
             new PlayerTint.Tier { name = "학생",   minIQ = 80,  color = new Color(0.478f, 0.419f, 0.298f) },
             new PlayerTint.Tier { name = "교수",   minIQ = 100, color = new Color(0.411f, 0.361f, 0.331f) },
-            new PlayerTint.Tier { name = "천재",   minIQ = 120, color = new Color(0.725f, 0.573f, 0.366f) },
+            new PlayerTint.Tier { name = "천재",   minIQ = 110, color = new Color(0.725f, 0.573f, 0.366f) },
         };
         EditorUtility.SetDirty(pt);
+
+        // 돌 밀치기: 뒤로 빡 (기존 컴포넌트에도 적용)
+        var ph = pm.GetComponent<PlayerHit>();
+        if (ph != null) { ph.knockbackForce = 15f; EditorUtility.SetDirty(ph); }
     }
 
     static void EnsurePortrait(GameObject canvas)
     {
         if (canvas == null) return;
-        if (Object.FindFirstObjectByType<PortraitDisplay>() != null) return;
+
+        int[] mins = { 60, 80, 100, 110 };
+        var existingPd = Object.FindFirstObjectByType<PortraitDisplay>();
+        if (existingPd != null)
+        {
+            // 이미 있으면 frames(초상 이미지)는 보존하고 임계값만 갱신
+            if (existingPd.tiers != null)
+                for (int i = 0; i < existingPd.tiers.Length && i < mins.Length; i++)
+                    existingPd.tiers[i].minIQ = mins[i];
+            EditorUtility.SetDirty(existingPd);
+            return;
+        }
 
         var imgGO = new GameObject("Portrait", typeof(Image));
         imgGO.transform.SetParent(canvas.transform, false);
@@ -199,7 +214,7 @@ public static class GameSystemsBuilder
             new PortraitDisplay.Tier { name = "원시인", minIQ = 60,  frames = new Sprite[0] },
             new PortraitDisplay.Tier { name = "학생",   minIQ = 80,  frames = new Sprite[0] },
             new PortraitDisplay.Tier { name = "교수",   minIQ = 100, frames = new Sprite[0] },
-            new PortraitDisplay.Tier { name = "천재",   minIQ = 120, frames = new Sprite[0] },
+            new PortraitDisplay.Tier { name = "천재",   minIQ = 110, frames = new Sprite[0] },
         };
 
         Undo.RegisterCreatedObjectUndo(imgGO, "Create Portrait");

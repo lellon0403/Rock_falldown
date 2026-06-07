@@ -77,7 +77,7 @@
 | 고정 장애물 (돌벽 등) | 🟩🟩🟩⬜⬜ | [ObstacleSpawner](Assets/Scripts/Stage/ObstacleSpawner.cs) — 표면 위 랜덤 배치 (매 판 다름) |
 | 미끄러운 구간 (PhysicMaterial) | ⬛⬛⬛⬛⬛ | **미착수** |
 | 효과음/BGM | ⬛⬛⬛⬛⬛ | **미착수** |
-| 구간별 Material 테마 | ⬛⬛⬛⬛⬛ | **미착수** |
+| 구간별 Material 테마 | 🟩🟩🟩⬜⬜ | Stage1 잔디 / Stage2 얼음 **타일 텍스처**(GPT 생성, `Assets/Art/Ground/`) — 올라갈 때 움직임 느낌. [GroundImporter](Assets/Scripts/Editor/GroundImporter.cs)로 적용 |
 | 밸런싱/난이도 곡선 | ⬛⬛⬛⬛⬛ | **미착수** |
 | PlayerPrefs 최고점 | ⬛⬛⬛⬛⬛ | **미착수** |
 

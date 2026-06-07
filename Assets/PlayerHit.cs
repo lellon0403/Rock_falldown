@@ -2,9 +2,9 @@ using UnityEngine;
 
 public class PlayerHit : MonoBehaviour
 {
-    [Tooltip("기본 밀치기 세기 (Rock 컴포넌트 없을 때)")]
-    public float knockbackForce = 5f;
-    [Tooltip("밀치는 방향(경사 아래쪽). 올라가는 방향이 +Z라 기본 -Z")]
+    [Tooltip("기본 밀치기 세기 (Rock 컴포넌트 없을 때) — 뒤로 빡 밀치게 강하게")]
+    public float knockbackForce = 15f;
+    [Tooltip("밀치는 방향(경사 아래=뒤쪽). 올라가는 방향이 +Z라 기본 -Z")]
     public Vector3 downhillDir = new Vector3(0f, -0.3f, -1f);
 
     Rigidbody rb;
