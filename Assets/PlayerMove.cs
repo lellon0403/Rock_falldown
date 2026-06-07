@@ -5,7 +5,7 @@ using UnityEngine.InputSystem;
 public class PlayerMove : MonoBehaviour
 {
     public float speed = 5f;
-    public float knockbackDuration = 0.5f;  // 입력 막을 시간
+    public float knockbackDuration = 0.3f;  // 입력 막을 시간 (짧게 → 곧 멈춰 잔류 힘 없음)
 
     Rigidbody rb;
     float knockbackTimer = 0f;
