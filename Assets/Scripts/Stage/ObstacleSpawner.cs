@@ -12,10 +12,10 @@ public class ObstacleSpawner : MonoBehaviour
     public float edgeMargin = 5f;
     [Tooltip("기둥 굵기(XZ) 범위")]
     public Vector2 scaleRange = new Vector2(2f, 3.5f);
-    [Tooltip("기둥 높이(Y) 범위 — 경사에 박힌 느낌이 나게 크게")]
-    public Vector2 heightScale = new Vector2(4f, 7f);
+    [Tooltip("기둥 높이(Y) 범위 — 너무 크면 문제를 가리고 돌이 정체됨")]
+    public Vector2 heightScale = new Vector2(2f, 3.5f);
     [Tooltip("표면 아래로 파묻을 깊이 (경사에 박힌 느낌)")]
-    public float sink = 2f;
+    public float sink = 1.5f;
 
     void Start()
     {

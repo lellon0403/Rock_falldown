@@ -14,7 +14,7 @@ public class MathGate : MonoBehaviour
     public GateDoor rightDoor;
 
     [Header("보상 / 연출 (선택)")]
-    public int iqBonus = 10;
+    public int iqBonus = 30;   // 스테이지 클리어당 +30 (60→90→120→150)
     public UnityEvent onCorrect;   // 정답 통과 시 — IQ/VFX/사운드 인스펙터 연결용
     public UnityEvent onWrong;     // 오답 충돌 시
 

@@ -3,22 +3,24 @@ using UnityEngine;
 using UnityEditor;
 
 // 메뉴: Tools > Rock Falldown > Import & Assign Ground Textures
-// Assets/Art/Ground 의 텍스처를 Repeat로 임포트하고 Stage 머티리얼의 BaseMap + 타일링에 적용.
+// Assets/Art/Ground 텍스처를 Repeat로 임포트하고, 각 스테이지 머티리얼+표면에 할당.
+// Stage_1 잔디 / Stage_2 얼음 / Stage_3 고원
 public static class GroundImporter
 {
     const string Dir = "Assets/Art/Ground";
-    static readonly Vector2 Tiling = new Vector2(10f, 10f);   // 반복 횟수 (무늬가 지나가며 움직임 느낌)
+    static readonly Vector2 Tiling = new Vector2(10f, 10f);
 
     [MenuItem("Tools/Rock Falldown/Import & Assign Ground Textures")]
     public static void ImportAssign()
     {
-        Apply($"{Dir}/grass.png", "Assets/Materials/Stage_Grass.mat");
-        Apply($"{Dir}/ice.png", "Assets/Materials/Stage_Ice.mat");
+        Apply($"{Dir}/grass.png", "Assets/Materials/Stage_Grass.mat", "Stage_1");
+        Apply($"{Dir}/ice.png", "Assets/Materials/Stage_Ice.mat", "Stage_2");
+        Apply($"{Dir}/plateau.png", "Assets/Materials/Stage_Plateau.mat", "Stage_3");
         AssetDatabase.SaveAssets();
-        Debug.Log("[GroundImporter] 바닥 텍스처 적용 완료. 타일이 너무 크/작으면 머티리얼의 Base Map Tiling 조절.");
+        Debug.Log("[GroundImporter] 바닥 텍스처 적용 완료 (Stage_1 잔디 / Stage_2 얼음 / Stage_3 고원).");
     }
 
-    static void Apply(string texPath, string matPath)
+    static void Apply(string texPath, string matPath, string stageName)
     {
         var ti = AssetImporter.GetAtPath(texPath) as TextureImporter;
         if (ti == null)
@@ -28,15 +30,16 @@ public static class GroundImporter
         }
         ti.wrapMode = TextureWrapMode.Repeat;
         ti.SaveAndReimport();
-
         var tex = AssetDatabase.LoadAssetAtPath<Texture2D>(texPath);
-        var mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
-        if (tex == null || mat == null)
-        {
-            Debug.LogWarning($"[GroundImporter] 로드 실패: tex={texPath}, mat={matPath}");
-            return;
-        }
 
+        var mat = AssetDatabase.LoadAssetAtPath<Material>(matPath);
+        if (mat == null)
+        {
+            mat = new Material(Shader.Find("Universal Render Pipeline/Lit"));
+            if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.1f);   // 바닥은 무광에 가깝게
+            if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0f);
+            AssetDatabase.CreateAsset(mat, matPath);
+        }
         if (mat.HasProperty("_BaseMap"))
         {
             mat.SetTexture("_BaseMap", tex);
@@ -45,6 +48,16 @@ public static class GroundImporter
         mat.mainTexture = tex;
         mat.mainTextureScale = Tiling;
         EditorUtility.SetDirty(mat);
+
+        // 스테이지 표면에 머티리얼 할당
+        if (!string.IsNullOrEmpty(stageName))
+        {
+            var stage = GameObject.Find(stageName);
+            var mr = stage != null ? stage.GetComponent<MeshRenderer>() : null;
+            if (mr != null) { mr.sharedMaterial = mat; EditorUtility.SetDirty(mr); }
+            else if (stage == null)
+                Debug.Log($"[GroundImporter] {stageName} 없음 — 머티리얼만 준비됨(나중에 생성 시 할당).");
+        }
     }
 }
 #endif

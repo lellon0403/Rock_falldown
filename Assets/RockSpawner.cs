@@ -4,6 +4,8 @@ public class RockSpawner : MonoBehaviour
 {
     [Header("Spawn")]
     public GameObject rockPrefab;
+    [Tooltip("여러 종류를 섞어 스폰하려면 채우기 (비우면 rockPrefab 사용)")]
+    public GameObject[] rockPrefabs;
     public float interval = 1.5f;
     public float startDelay = 1f;
     [Tooltip("한 번에 동시에 떨굴 바위 개수 (서로 다른 레인에 배치)")]
@@ -82,7 +84,11 @@ public class RockSpawner : MonoBehaviour
     {
         float x = firstLaneCenter + laneStep * lane;
         Vector3 spawnPos = transform.position + new Vector3(x, 0f, 0f);
-        Instantiate(rockPrefab, spawnPos, Quaternion.identity);
+
+        GameObject prefab = (rockPrefabs != null && rockPrefabs.Length > 0)
+            ? rockPrefabs[Random.Range(0, rockPrefabs.Length)]
+            : rockPrefab;
+        if (prefab != null) Instantiate(prefab, spawnPos, Quaternion.identity);
     }
 
     // 프리팹의 메시/콜라이더에서 바위의 가로 지름을 잰다

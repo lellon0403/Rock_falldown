@@ -40,6 +40,12 @@ TEXTURES = [
      "white frost and snow, subtle cracks and slightly darker frozen water areas, varied "
      "organic pattern, not uniform, flat even lighting, no harsh shadows, repeating pattern, "
      "game ground texture, edges match for tiling"),
+    ("plateau",
+     "seamless tileable top-down ground texture of a volcanic highland, dark grey-brown "
+     "rocky volcanic ground with scattered dark basalt stones and sparse tufts of dry "
+     "brownish grass, rugged barren terrain, muted earthy colors, NOT sandy desert, "
+     "flat even lighting, no harsh shadows, repeating pattern, game ground texture, "
+     "edges match for tiling"),
 ]
 
 
@@ -58,9 +64,12 @@ def main():
     OUT_DIR.mkdir(parents=True, exist_ok=True)
 
     for name, prompt in TEXTURES:
+        path = OUT_DIR / f"{name}.png"
+        if path.exists():
+            print(f"[{name}] 이미 있음 — 건너뜀")
+            continue
         print(f"[{name}] 생성 중...")
         res = client.images.generate(model=model, prompt=prompt, size="1024x1024", n=1)
-        path = OUT_DIR / f"{name}.png"
         path.write_bytes(base64.b64decode(res.data[0].b64_json))
         print(f"  완료: {path.name}")
 

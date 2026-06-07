@@ -19,6 +19,7 @@ public static class GameSystemsBuilder
         RestorePlayer3D();
         EnsurePortrait(canvas);
         EnsurePlayerTint();
+        EnsureGateBonus();
         ArrangeHud();
 
         Debug.Log("[GameSystemsBuilder] 셋업 완료. 초상 이미지는 생성 후 PortraitDisplay의 Tiers에 연결됩니다.");
@@ -126,6 +127,16 @@ public static class GameSystemsBuilder
         if (visual != null) Object.DestroyImmediate(visual.gameObject);
     }
 
+    // 모든 수학 게이트의 IQ 보너스를 +30으로 (스테이지 클리어당 60→90→120→150)
+    static void EnsureGateBonus()
+    {
+        foreach (var gate in Object.FindObjectsByType<MathGate>(FindObjectsSortMode.None))
+        {
+            gate.iqBonus = 30;
+            EditorUtility.SetDirty(gate);
+        }
+    }
+
     // 초상과 IQ 숫자가 겹치지 않게 배치 (재실행해도 항상 정리)
     static void ArrangeHud()
     {
@@ -167,9 +178,9 @@ public static class GameSystemsBuilder
         pt.tiers = new PlayerTint.Tier[]
         {
             new PlayerTint.Tier { name = "원시인", minIQ = 60,  color = new Color(0.572f, 0.397f, 0.236f) },
-            new PlayerTint.Tier { name = "학생",   minIQ = 80,  color = new Color(0.478f, 0.419f, 0.298f) },
-            new PlayerTint.Tier { name = "교수",   minIQ = 100, color = new Color(0.411f, 0.361f, 0.331f) },
-            new PlayerTint.Tier { name = "천재",   minIQ = 110, color = new Color(0.725f, 0.573f, 0.366f) },
+            new PlayerTint.Tier { name = "학생",   minIQ = 90,  color = new Color(0.478f, 0.419f, 0.298f) },
+            new PlayerTint.Tier { name = "교수",   minIQ = 120, color = new Color(0.411f, 0.361f, 0.331f) },
+            new PlayerTint.Tier { name = "천재",   minIQ = 150, color = new Color(0.725f, 0.573f, 0.366f) },
         };
         EditorUtility.SetDirty(pt);
 
@@ -185,7 +196,7 @@ public static class GameSystemsBuilder
     {
         if (canvas == null) return;
 
-        int[] mins = { 60, 80, 100, 110 };
+        int[] mins = { 60, 90, 120, 150 };
         var existingPd = Object.FindFirstObjectByType<PortraitDisplay>();
         if (existingPd != null)
         {
@@ -215,9 +226,9 @@ public static class GameSystemsBuilder
         pd.tiers = new PortraitDisplay.Tier[]
         {
             new PortraitDisplay.Tier { name = "원시인", minIQ = 60,  frames = new Sprite[0] },
-            new PortraitDisplay.Tier { name = "학생",   minIQ = 80,  frames = new Sprite[0] },
-            new PortraitDisplay.Tier { name = "교수",   minIQ = 100, frames = new Sprite[0] },
-            new PortraitDisplay.Tier { name = "천재",   minIQ = 110, frames = new Sprite[0] },
+            new PortraitDisplay.Tier { name = "학생",   minIQ = 90,  frames = new Sprite[0] },
+            new PortraitDisplay.Tier { name = "교수",   minIQ = 120, frames = new Sprite[0] },
+            new PortraitDisplay.Tier { name = "천재",   minIQ = 150, frames = new Sprite[0] },
         };
 
         Undo.RegisterCreatedObjectUndo(imgGO, "Create Portrait");

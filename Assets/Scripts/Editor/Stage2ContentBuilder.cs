@@ -38,7 +38,7 @@ public static class Stage2ContentBuilder
         rb.mass = 0.5f;
         go.AddComponent<RockDestroyer>();
         go.AddComponent<Rock>().knockbackForce = 1.5f;   // 조각: 아주 약하게 (여러 개라)
-        go.GetComponent<MeshRenderer>().sharedMaterial = BrownMat();   // 갈색
+        go.GetComponent<MeshRenderer>().sharedMaterial = SnowMat();   // 흰 눈덩이
 
         var prefab = PrefabUtility.SaveAsPrefabAsset(go, "Assets/Prefabs/Rock_Fragment.prefab");
         Object.DestroyImmediate(go);
@@ -50,7 +50,7 @@ public static class Stage2ContentBuilder
         var go = GameObject.CreatePrimitive(PrimitiveType.Sphere);
         go.name = "Rock_Splitting";
         go.tag = "Rock";
-        go.transform.localScale = Vector3.one * 5f;
+        go.transform.localScale = Vector3.one * 9f;   // 거대 눈덩이
 
         var rb = go.AddComponent<Rigidbody>();
         rb.mass = 2f;
@@ -59,7 +59,7 @@ public static class Stage2ContentBuilder
 
         var sr = go.AddComponent<SplittingRock>();
         sr.fragmentPrefab = fragment;
-        go.GetComponent<MeshRenderer>().sharedMaterial = BrownMat();   // 갈색
+        go.GetComponent<MeshRenderer>().sharedMaterial = SnowMat();   // 흰 눈덩이
 
         var prefab = PrefabUtility.SaveAsPrefabAsset(go, "Assets/Prefabs/Rock_Splitting.prefab");
         Object.DestroyImmediate(go);
@@ -79,17 +79,29 @@ public static class Stage2ContentBuilder
         return prefab;
     }
 
-    static Material BrownMat()
+    // 거대 눈덩이용 흰 눈 머티리얼 (snow.png 있으면 텍스처도 입힘)
+    static Material SnowMat()
     {
-        const string path = "Assets/Materials/Rock_Brown.mat";
-        var existing = AssetDatabase.LoadAssetAtPath<Material>(path);
-        if (existing != null) return existing;
-
-        var mat = new Material(Shader.Find("Universal Render Pipeline/Lit"))
+        const string path = "Assets/Materials/Rock_Snow.mat";
+        var mat = AssetDatabase.LoadAssetAtPath<Material>(path);
+        if (mat == null)
         {
-            color = new Color(0.45f, 0.30f, 0.16f)   // 갈색
-        };
-        AssetDatabase.CreateAsset(mat, path);
+            mat = new Material(Shader.Find("Universal Render Pipeline/Lit")) { color = Color.white };
+            AssetDatabase.CreateAsset(mat, path);
+        }
+        var tex = AssetDatabase.LoadAssetAtPath<Texture2D>("Assets/Art/Rocks/snow.png");
+        if (tex != null)
+        {
+            if (mat.HasProperty("_BaseMap"))
+            {
+                mat.SetTexture("_BaseMap", tex);
+                mat.SetTextureScale("_BaseMap", new Vector2(2f, 2f));
+            }
+            mat.mainTexture = tex;
+            if (mat.HasProperty("_Smoothness")) mat.SetFloat("_Smoothness", 0.1f);   // 눈은 살짝만
+            if (mat.HasProperty("_Metallic")) mat.SetFloat("_Metallic", 0f);
+            EditorUtility.SetDirty(mat);
+        }
         return mat;
     }
 
@@ -110,25 +122,31 @@ public static class Stage2ContentBuilder
         }
         sp.obstaclePrefab = obstaclePrefab;
         sp.stageArea = rend;
-        sp.count = 8;
+        sp.count = 6;                              // 겹침/정체 완화
+        sp.heightScale = new Vector2(2f, 3.5f);    // 기둥 낮게 (문제 가림 방지)
+        sp.sink = 1.5f;
         EditorUtility.SetDirty(sp);
     }
 
-    // Stage_2의 자식 스포너(= Stage 2 스포너)의 Rock Prefab을 분열 바위로 교체
+    // Stage_2 스포너가 일반(강한) 돌 + 분열 바위를 섞어 스폰하게 설정
     static void AssignSplittingRockToStage2(GameObject s2, GameObject splitting)
     {
+        var normal = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Rock.prefab");
+
         bool assigned = false;
         foreach (var sp in Object.FindObjectsByType<RockSpawner>(FindObjectsSortMode.None))
         {
             if (sp.transform.IsChildOf(s2.transform))
             {
-                sp.rockPrefab = splitting;
+                sp.rockPrefabs = (normal != null)
+                    ? new[] { normal, splitting }   // 강한 일반 돌 + 분열 바위 혼합
+                    : new[] { splitting };
                 EditorUtility.SetDirty(sp);
                 assigned = true;
             }
         }
         if (!assigned)
-            Debug.LogWarning("[Stage2ContentBuilder] Stage_2 자식 스포너를 못 찾음. Stage 2 스포너의 Rock Prefab을 수동으로 Rock_Splitting으로 바꾸세요.");
+            Debug.LogWarning("[Stage2ContentBuilder] Stage_2 자식 스포너를 못 찾음. 수동으로 Rock Prefabs에 Rock + Rock_Splitting을 넣으세요.");
     }
 }
 #endif
