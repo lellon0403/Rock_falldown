@@ -173,9 +173,12 @@ public static class GameSystemsBuilder
         };
         EditorUtility.SetDirty(pt);
 
-        // 돌 밀치기: 뒤로 빡 (기존 컴포넌트에도 적용)
+        // 돌 밀치기(임펄스) — 적당값. 인스펙터에서 조절 (기존 컴포넌트에도 적용)
         var ph = pm.GetComponent<PlayerHit>();
-        if (ph != null) { ph.knockbackForce = 15f; EditorUtility.SetDirty(ph); }
+        if (ph != null) { ph.knockbackForce = 40f; EditorUtility.SetDirty(ph); }
+        pm.knockbackDuration = 0.5f;
+        pm.knockbackDamping = 5f;
+        EditorUtility.SetDirty(pm);
     }
 
     static void EnsurePortrait(GameObject canvas)

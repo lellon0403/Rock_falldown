@@ -37,7 +37,7 @@ public static class Stage2ContentBuilder
         var rb = go.AddComponent<Rigidbody>();
         rb.mass = 0.5f;
         go.AddComponent<RockDestroyer>();
-        go.AddComponent<Rock>().knockbackForce = 1.5f;   // 조각: 아주 약하게 (질질 끌림)
+        go.AddComponent<Rock>().knockbackForce = 1.5f;   // 조각: 아주 약하게 (여러 개라)
         go.GetComponent<MeshRenderer>().sharedMaterial = BrownMat();   // 갈색
 
         var prefab = PrefabUtility.SaveAsPrefabAsset(go, "Assets/Prefabs/Rock_Fragment.prefab");
@@ -55,7 +55,7 @@ public static class Stage2ContentBuilder
         var rb = go.AddComponent<Rigidbody>();
         rb.mass = 2f;
         go.AddComponent<RockDestroyer>();
-        go.AddComponent<Rock>().knockbackForce = 2.5f;   // 본체도 약하게
+        go.AddComponent<Rock>().knockbackForce = 2.5f;   // 본체: 약하게
 
         var sr = go.AddComponent<SplittingRock>();
         sr.fragmentPrefab = fragment;

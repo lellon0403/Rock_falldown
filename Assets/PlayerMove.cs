@@ -5,7 +5,10 @@ using UnityEngine.InputSystem;
 public class PlayerMove : MonoBehaviour
 {
     public float speed = 5f;
-    public float knockbackDuration = 0.3f;  // 입력 막을 시간 (짧게 → 곧 멈춰 잔류 힘 없음)
+    [Tooltip("넉백 지속 시간 (이 동안 입력 잠금, 끝에 속도 0)")]
+    public float knockbackDuration = 0.5f;
+    [Tooltip("넉백 중 감속 세기 (클수록 빨리 느려짐)")]
+    public float knockbackDamping = 5f;
 
     Rigidbody rb;
     float knockbackTimer = 0f;
@@ -26,7 +29,12 @@ public class PlayerMove : MonoBehaviour
         if (knockbackTimer > 0f)
         {
             knockbackTimer -= Time.fixedDeltaTime;
-            return;  // 날아가는 중엔 입력 무시
+            if (knockbackTimer <= 0f)
+                rb.linearVelocity = Vector3.zero;   // 지속시간 끝 → 완전 정지
+            else
+                rb.linearVelocity = Vector3.Lerp(rb.linearVelocity, Vector3.zero,
+                                                 knockbackDamping * Time.fixedDeltaTime);  // 빠르게 감속
+            return;  // 밀리는 중엔 입력 잠금
         }
 
         var kb = Keyboard.current;

@@ -1,31 +1,33 @@
 using UnityEngine;
 
+[RequireComponent(typeof(Rigidbody))]
+[RequireComponent(typeof(PlayerMove))]
 public class PlayerHit : MonoBehaviour
 {
-    [Tooltip("기본 밀치기 세기 (Rock 컴포넌트 없을 때) — 뒤로 빡 밀치게 강하게")]
-    public float knockbackForce = 15f;
-    [Tooltip("밀치는 방향(경사 아래=뒤쪽). 올라가는 방향이 +Z라 기본 -Z")]
-    public Vector3 downhillDir = new Vector3(0f, -0.3f, -1f);
+    [Tooltip("기본 밀치는 세기 (Rock 컴포넌트 없을 때). 클수록 더 멀리 밀림")]
+    public float knockbackForce = 40f;
 
     Rigidbody rb;
+    PlayerMove move;
 
     void Awake()
     {
         rb = GetComponent<Rigidbody>();
+        move = GetComponent<PlayerMove>();
     }
 
     void OnCollisionEnter(Collision collision)
     {
         if (!collision.gameObject.CompareTag("Rock")) return;
 
-        // 바위별 밀치기 힘 (Rock 컴포넌트 있으면 그 값, 없으면 기본값)
+        // 바위별 세기 (Rock 컴포넌트 있으면 그 값)
         float force = knockbackForce;
         var rock = collision.gameObject.GetComponent<Rock>();
         if (rock != null) force = rock.knockbackForce;
 
-        // 임펄스 누적 대신 '경사 아래로 살짝' 속도를 직접 지정.
-        // PlayerMove가 knockbackDuration 후 위치를 다시 잡아 멈추므로 잔류 힘이 남지 않는다.
-        rb.linearVelocity = downhillDir.normalized * force;
-        GetComponent<PlayerMove>().ApplyKnockback();
+        // 바위 → 플레이어 방향으로 물리 임펄스 (기존 Rigidbody 느낌)
+        Vector3 dir = (transform.position - collision.transform.position).normalized;
+        rb.AddForce(dir * force, ForceMode.Impulse);
+        move.ApplyKnockback();
     }
 }

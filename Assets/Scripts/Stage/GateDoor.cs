@@ -10,8 +10,10 @@ public class GateDoor : MonoBehaviour
     [Tooltip("막는 벽 (정답이면 통과 시 비활성화)")]
     public GameObject barrier;
     public TMP_Text answerLabel;
-    [Tooltip("오답일 때 플레이어를 뒤로 밀어내는 세기 (돌과 동일한 방식)")]
-    public float wrongKnockbackForce = 8f;
+    [Tooltip("오답일 때 플레이어를 밀치는 세기")]
+    public float wrongKnockbackForce = 15f;
+    [Tooltip("밀리는 방향(경사 아래=뒤쪽)")]
+    public Vector3 wrongDir = new Vector3(0f, -0.3f, -1f);
 
     MathGate gate;
     bool isCorrect;
@@ -43,17 +45,11 @@ public class GateDoor : MonoBehaviour
         }
         else
         {
-            // 오답 → 돌처럼 뒤로 밀어냄
-            Rigidbody rb = other.attachedRigidbody;
-            if (rb != null)
-            {
-                Vector3 dir = rb.position - transform.position;
-                dir.y = 0f;
-                if (dir.sqrMagnitude < 0.001f) dir = -transform.forward;   // 안전장치
-                rb.AddForce(dir.normalized * wrongKnockbackForce, ForceMode.Impulse);
-            }
+            // 오답 → 물리 임펄스로 밀림 (기존 Rigidbody 느낌)
+            var rb = other.attachedRigidbody;
+            if (rb != null) rb.AddForce(wrongDir.normalized * wrongKnockbackForce, ForceMode.Impulse);
             var pm = other.GetComponentInParent<PlayerMove>();
-            if (pm != null) pm.ApplyKnockback();   // 입력 잠깐 잠금 (PlayerHit와 동일)
+            if (pm != null) pm.ApplyKnockback();
 
             gate.NotifyWrong();
         }
