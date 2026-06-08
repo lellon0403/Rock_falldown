@@ -45,6 +45,18 @@ IMAGES = [
      "densely covered with bright glowing white and pale blue stars of varied sizes, a few "
      "soft purple nebula wisps, sparkling cosmic look, flat even lighting, no shadows, "
      "uniform repeating pattern, game texture, edges match for tiling"),
+    # Stage 5 바닥 — 더 화려한 성운
+    (ROOT / "Assets" / "Art" / "Ground" / "space5.png",
+     "seamless tileable top-down deep space nebula texture, swirling vivid purple, magenta "
+     "and teal cosmic clouds with bright scattered stars and distant galaxies, rich and "
+     "colorful nebula, dark background, flat even lighting, no harsh shadows, repeating "
+     "pattern, game ground texture, edges match for tiling"),
+    # 결승선 바닥 — 우주풍 체커보드
+    (ROOT / "Assets" / "Art" / "Ground" / "finish.png",
+     "seamless tileable top-down checkered finish-line floor texture, alternating glossy "
+     "black and white squares with a subtle purple cosmic glow along the edges, racing "
+     "checkerboard pattern, clean and even, flat lighting, no harsh shadows, repeating "
+     "pattern, game ground texture, edges match for tiling"),
 ]
 
 MODEL = os.environ.get("IMAGE_MODEL", "gpt-image-2")   # 반드시 gpt-image-2
