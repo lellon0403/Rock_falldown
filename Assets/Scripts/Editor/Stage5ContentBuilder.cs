@@ -222,7 +222,8 @@ public static class Stage5ContentBuilder
         pathCenter.y = topEnd.y;
         path.transform.SetPositionAndRotation(pathCenter, flatRot);
         path.transform.localScale = new Vector3(MapWidth / 10f, 1f, pathLen / 10f);
-        var pathMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/Stage_Space.mat");
+        var pathMat = AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/Stage_Finish.mat")
+                   ?? AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/Stage_Space.mat");
         if (pathMat != null) path.GetComponent<MeshRenderer>().sharedMaterial = pathMat;
 
         // 완주 레일 (가로로 깔린 결승선) — 시작 지점
