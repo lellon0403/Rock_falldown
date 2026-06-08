@@ -26,7 +26,14 @@ public class GateDoor : MonoBehaviour
         opened = false;
 
         if (barrier != null) barrier.SetActive(true);
-        if (answerLabel != null) answerLabel.text = answer.ToString();
+        if (answerLabel != null)
+        {
+            answerLabel.text = answer.ToString();
+            answerLabel.color = Color.white;   // 흰색 = 보기(정답/오답 동일색)
+            answerLabel.fontStyle = FontStyles.Bold;
+            answerLabel.outlineColor = Color.black;
+            answerLabel.outlineWidth = 0.2f;
+        }
 
         GetComponent<Collider>().isTrigger = true;   // 본체 콜라이더 = 감지 존
     }
