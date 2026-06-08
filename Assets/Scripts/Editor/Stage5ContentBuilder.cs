@@ -58,13 +58,14 @@ public static class Stage5ContentBuilder
         float sx = Mathf.Abs(ls.x) < 1e-4f ? 1f : ls.x;
         float sz = Mathf.Abs(ls.z) < 1e-4f ? 1f : ls.z;
 
-        // 구멍 중심(로컬): along→Z, across→X 로 매핑
+        // 구멍 중심(로컬): along→Z, across→X 로 매핑, 반지름도 함께
         int hn = HoleSpots.GetLength(0);
-        var hx = new float[hn]; var hz = new float[hn];
+        var hx = new float[hn]; var hz = new float[hn]; var hr = new float[hn];
         for (int i = 0; i < hn; i++)
         {
             hx[i] = HoleSpots[i, 1] * halfX * 0.9f;
             hz[i] = HoleSpots[i, 0] * halfZ * 0.9f;
+            hr[i] = HoleSpots[i, 2];
         }
 
         // 격자 해상도 (칸 크기 ~ 로컬 0.2)
@@ -85,7 +86,7 @@ public static class Stage5ContentBuilder
                 float z1 = Mathf.Lerp(minZ, maxZ, (iz + 1) / (float)cz);
 
                 float mxp = (x0 + x1) * 0.5f, mzp = (z0 + z1) * 0.5f;
-                if (InAnyHole(mxp, mzp, hx, hz, sx, sz)) continue;   // 구멍 칸은 건너뜀
+                if (InAnyHole(mxp, mzp, hx, hz, hr, sx, sz)) continue;   // 구멍 칸은 건너뜀
 
                 int baseIdx = verts.Count;
                 AddVert(verts, uvs, x0, y, z0, minX, maxX, minZ, maxZ);
@@ -130,13 +131,13 @@ public static class Stage5ContentBuilder
         uv.Add(new Vector2(Mathf.InverseLerp(minX, maxX, x), Mathf.InverseLerp(minZ, maxZ, z)));
     }
 
-    static bool InAnyHole(float x, float z, float[] hx, float[] hz, float sx, float sz)
+    static bool InAnyHole(float x, float z, float[] hx, float[] hz, float[] hr, float sx, float sz)
     {
         for (int i = 0; i < hx.Length; i++)
         {
             float wdx = (x - hx[i]) * sx;
             float wdz = (z - hz[i]) * sz;
-            if (wdx * wdx + wdz * wdz < HoleWorldRadius * HoleWorldRadius) return true;
+            if (wdx * wdx + wdz * wdz < hr[i] * hr[i]) return true;
         }
         return false;
     }
