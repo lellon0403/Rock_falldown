@@ -80,7 +80,7 @@ def main():
     for path, prompt in IMAGES:
         path.parent.mkdir(parents=True, exist_ok=True)
         if path.exists():
-            print(f"[{path.name}] 이미 있음 — 건너뜀")
+            print(f"[{path.name}] already exists - skip")
             continue
         print(f"[{path.name}] 생성 중... (model={MODEL})")
         res = client.images.generate(model=MODEL, prompt=prompt, size="1024x1024", n=1)
