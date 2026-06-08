@@ -16,8 +16,9 @@ public static class GroundImporter
         Apply($"{Dir}/grass.png", "Assets/Materials/Stage_Grass.mat", "Stage_1");
         Apply($"{Dir}/ice.png", "Assets/Materials/Stage_Ice.mat", "Stage_2");
         Apply($"{Dir}/plateau.png", "Assets/Materials/Stage_Plateau.mat", "Stage_3");
+        Apply($"{Dir}/space.png", "Assets/Materials/Stage_Space.mat", "Stage_4");
         AssetDatabase.SaveAssets();
-        Debug.Log("[GroundImporter] 바닥 텍스처 적용 완료 (Stage_1 잔디 / Stage_2 얼음 / Stage_3 고원).");
+        Debug.Log("[GroundImporter] 바닥 텍스처 적용 완료 (Stage_1 잔디 / Stage_2 얼음 / Stage_3 고원 / Stage_4 우주).");
     }
 
     static void Apply(string texPath, string matPath, string stageName)
