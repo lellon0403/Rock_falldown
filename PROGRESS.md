@@ -68,7 +68,7 @@
 | 캐릭터 진화 (원시인→천재) | 🟩🟩🟩🟩⬜ | **3D 유지 + 좌상단 HUD 초상** ([PortraitDisplay](Assets/Scripts/UI/PortraitDisplay.cs)). 4단계(IQ 60/80/100/120), 단계당 2프레임. 초상 8장 GPT 생성 완료(`Assets/Art/Portraits/`), [임포터](Assets/Scripts/Editor/PortraitImporter.cs)로 연결 |
 | 두뇌 풀가동 슬로우 모션 | ⬛⬛⬛⬛⬛ | **미착수** |
 | 위험 알림 UI 오버레이 | ⬛⬛⬛⬛⬛ | **미착수** |
-| 바위 종류 다양화 (5종) | 🟩🟩⬜⬜⬜ | 2/5 — 일반 + [분열 바위](Assets/Scripts/Rock/SplittingRock.cs)(장애물 충돌 시 조각화). 밀치기 [바위별 설정](Assets/Scripts/Rock/Rock.cs) |
+| 바위 종류 다양화 | 🟩🟩🟩🟩⬜ | 일반 + [분열](Assets/Scripts/Rock/SplittingRock.cs) + [빠른](Assets/Scripts/Rock/FastRock.cs) + 거대(눈덩이) + [투명](Assets/Scripts/Rock/PhasingRock.cs)(Stage4, 보임2초/은신3초, 물리는 일반과 동일). 기획서 5종 중 '튕기는 바위'만 미구현. 밀치기 [바위별 설정](Assets/Scripts/Rock/Rock.cs) |
 | 캐릭터 표정 Animator | ⬛⬛⬛⬛⬛ | **미착수** |
 
 ### Phase 5 — 폴리싱
