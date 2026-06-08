@@ -37,6 +37,10 @@ public static class Stage5ContentBuilder
     // MeshFilter + MeshCollider 둘 다 교체해서 보이는 구멍이자 빠지는 구멍이 된다.
     static void GenerateHoledFloor(GameObject s5)
     {
+        // 예전 디스크 방식(Holes_Stage5)이 남아 있으면 제거 — 진짜 뚫린 메시와 겹침 방지.
+        var legacy = s5.transform.Find("Holes_Stage5");
+        if (legacy != null) Object.DestroyImmediate(legacy.gameObject);
+
         var mf = s5.GetComponent<MeshFilter>();
         if (mf == null || mf.sharedMesh == null)
         {
