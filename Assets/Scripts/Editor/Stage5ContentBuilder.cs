@@ -17,63 +17,143 @@ public static class Stage5ContentBuilder
     {
         var s5 = GameObject.Find("Stage_5");
         if (s5 == null) { Debug.LogWarning("[Stage5] Stage_5가 없습니다. 먼저 'Create Next Stage (map)'."); return; }
-        if (!GetAxes(out Vector3 along, out Vector3 across, out Vector3 normal, out float halfLen)) return;
 
-        BuildHoles(s5, along, across, normal, halfLen);
+        GenerateHoledFloor(s5);
+        EnsureKillSlab(s5);
         EnsureMixedSpawner(s5);
 
         AssetDatabase.SaveAssets();
-        Debug.Log("[Stage5] 구멍 + 혼합 바위 콘텐츠 적용 완료.");
+        Debug.Log("[Stage5] 실제 구멍 + 낙사 판정 + 혼합 바위 콘텐츠 적용 완료.");
     }
 
-    static void BuildHoles(GameObject s5, Vector3 along, Vector3 across, Vector3 normal, float halfLen)
+    // (경사 따라 비율, 가로 비율) — 구멍 중심을 평면 로컬에 결정적으로 배치
+    static readonly float[,] HoleSpots = {
+        {-0.6f,-0.55f},{-0.5f, 0.45f},{-0.3f,-0.8f},{-0.1f, 0.7f},
+        { 0.1f,-0.3f },{ 0.3f, 0.65f},{ 0.45f,-0.6f},{ 0.6f, 0.25f},
+    };
+    const float HoleWorldRadius = 3.5f;   // 월드 기준 구멍 반지름
+
+    // 평면 메시를 격자로 다시 만들면서 구멍 위치의 칸을 빼버린다 → 진짜로 뚫린 바닥.
+    // MeshFilter + MeshCollider 둘 다 교체해서 보이는 구멍이자 빠지는 구멍이 된다.
+    static void GenerateHoledFloor(GameObject s5)
     {
-        var old = s5.transform.Find("Holes_Stage5");
-        if (old != null) Object.DestroyImmediate(old.gameObject);
-
-        var root = new GameObject("Holes_Stage5");
-        root.transform.SetParent(s5.transform, true);
-
-        var mat = MakeMat("Assets/Materials/Hole.mat", Color.black, 0.1f, 0f);
-
-        // (경사 따라 비율, 가로 비율) — 결정적으로 흩뿌림
-        float[,] spots = {
-            {-0.6f,-0.55f},{-0.5f, 0.45f},{-0.3f,-0.8f},{-0.1f, 0.7f},
-            { 0.1f,-0.3f },{ 0.3f, 0.65f},{ 0.45f,-0.6f},{ 0.6f, 0.25f},
-        };
-        const float holeDia = 6f;
-        float halfW = MapWidth * 0.5f - holeDia * 0.5f - 1f;
-
-        Quaternion rot = Quaternion.LookRotation(along, normal);
-
-        for (int i = 0; i < spots.GetLength(0); i++)
+        var mf = s5.GetComponent<MeshFilter>();
+        if (mf == null || mf.sharedMesh == null)
         {
-            Vector3 pos = s5.transform.position
-                        + along * (spots[i, 0] * halfLen)
-                        + across * (spots[i, 1] * halfW)
-                        + normal * 0.1f;
-
-            var hole = new GameObject("Hole_" + i);
-            hole.transform.SetParent(root.transform, true);
-            hole.transform.SetPositionAndRotation(pos, rot);
-
-            var box = hole.AddComponent<BoxCollider>();
-            box.isTrigger = true;
-            box.size = new Vector3(holeDia, 3f, holeDia);   // 표면 위로 충분히 높게
-            box.center = new Vector3(0f, 1f, 0f);
-            hole.AddComponent<KillZone>();
-
-            // 검은 원반(시각용) — 콜라이더 제거
-            var disc = GameObject.CreatePrimitive(PrimitiveType.Cylinder);
-            disc.name = "Disc";
-            Object.DestroyImmediate(disc.GetComponent<Collider>());
-            disc.transform.SetParent(hole.transform, false);
-            disc.transform.localPosition = new Vector3(0f, -0.08f, 0f);
-            disc.transform.localScale = new Vector3(holeDia, 0.05f, holeDia);
-            disc.GetComponent<MeshRenderer>().sharedMaterial = mat;
+            Debug.LogWarning("[Stage5] Stage_5에 평면 MeshFilter가 없습니다."); return;
         }
 
-        Undo.RegisterCreatedObjectUndo(root, "Create Stage5 Holes");
+        Bounds b = mf.sharedMesh.bounds;                 // 로컬 평면 범위(보통 10×10)
+        float minX = b.center.x - b.size.x * 0.5f, maxX = b.center.x + b.size.x * 0.5f;
+        float minZ = b.center.z - b.size.z * 0.5f, maxZ = b.center.z + b.size.z * 0.5f;
+        float y = b.center.y;
+        float halfX = b.size.x * 0.5f, halfZ = b.size.z * 0.5f;
+
+        // 월드에서 둥근 구멍이 되도록 로컬 거리에 스케일 반영
+        Vector3 ls = s5.transform.lossyScale;
+        float sx = Mathf.Abs(ls.x) < 1e-4f ? 1f : ls.x;
+        float sz = Mathf.Abs(ls.z) < 1e-4f ? 1f : ls.z;
+
+        // 구멍 중심(로컬): along→Z, across→X 로 매핑
+        int hn = HoleSpots.GetLength(0);
+        var hx = new float[hn]; var hz = new float[hn];
+        for (int i = 0; i < hn; i++)
+        {
+            hx[i] = HoleSpots[i, 1] * halfX * 0.9f;
+            hz[i] = HoleSpots[i, 0] * halfZ * 0.9f;
+        }
+
+        // 격자 해상도 (칸 크기 ~ 로컬 0.2)
+        int cx = Mathf.Clamp(Mathf.CeilToInt(b.size.x / 0.2f), 8, 200);
+        int cz = Mathf.Clamp(Mathf.CeilToInt(b.size.z / 0.2f), 8, 200);
+
+        var verts = new System.Collections.Generic.List<Vector3>();
+        var uvs = new System.Collections.Generic.List<Vector2>();
+        var tris = new System.Collections.Generic.List<int>();
+
+        for (int iz = 0; iz < cz; iz++)
+        {
+            for (int ix = 0; ix < cx; ix++)
+            {
+                float x0 = Mathf.Lerp(minX, maxX, ix / (float)cx);
+                float x1 = Mathf.Lerp(minX, maxX, (ix + 1) / (float)cx);
+                float z0 = Mathf.Lerp(minZ, maxZ, iz / (float)cz);
+                float z1 = Mathf.Lerp(minZ, maxZ, (iz + 1) / (float)cz);
+
+                float mxp = (x0 + x1) * 0.5f, mzp = (z0 + z1) * 0.5f;
+                if (InAnyHole(mxp, mzp, hx, hz, sx, sz)) continue;   // 구멍 칸은 건너뜀
+
+                int baseIdx = verts.Count;
+                AddVert(verts, uvs, x0, y, z0, minX, maxX, minZ, maxZ);
+                AddVert(verts, uvs, x1, y, z0, minX, maxX, minZ, maxZ);
+                AddVert(verts, uvs, x1, y, z1, minX, maxX, minZ, maxZ);
+                AddVert(verts, uvs, x0, y, z1, minX, maxX, minZ, maxZ);
+                // 윗면이 +Y(로컬 up)를 보도록 (기본 Plane과 동일)
+                tris.Add(baseIdx); tris.Add(baseIdx + 2); tris.Add(baseIdx + 1);
+                tris.Add(baseIdx); tris.Add(baseIdx + 3); tris.Add(baseIdx + 2);
+            }
+        }
+
+        var mesh = new Mesh { name = "Stage5_Floor" };
+        mesh.indexFormat = UnityEngine.Rendering.IndexFormat.UInt32;
+        mesh.SetVertices(verts);
+        mesh.SetUVs(0, uvs);
+        mesh.SetTriangles(tris, 0);
+        mesh.RecalculateNormals();
+        mesh.RecalculateBounds();
+
+        const string meshPath = "Assets/Meshes/Stage5_Floor.mesh";
+        System.IO.Directory.CreateDirectory(System.IO.Path.GetDirectoryName(
+            System.IO.Path.Combine(System.IO.Directory.GetCurrentDirectory(), meshPath)));
+        var existing = AssetDatabase.LoadAssetAtPath<Mesh>(meshPath);
+        if (existing != null) { EditorUtility.CopySerialized(mesh, existing); mesh = existing; }
+        else AssetDatabase.CreateAsset(mesh, meshPath);
+
+        mf.sharedMesh = mesh;
+        var mc = s5.GetComponent<MeshCollider>();
+        if (mc == null) mc = s5.AddComponent<MeshCollider>();
+        mc.sharedMesh = mesh;
+        EditorUtility.SetDirty(mf);
+        EditorUtility.SetDirty(mc);
+    }
+
+    static void AddVert(System.Collections.Generic.List<Vector3> v,
+                        System.Collections.Generic.List<Vector2> uv,
+                        float x, float y, float z,
+                        float minX, float maxX, float minZ, float maxZ)
+    {
+        v.Add(new Vector3(x, y, z));
+        uv.Add(new Vector2(Mathf.InverseLerp(minX, maxX, x), Mathf.InverseLerp(minZ, maxZ, z)));
+    }
+
+    static bool InAnyHole(float x, float z, float[] hx, float[] hz, float sx, float sz)
+    {
+        for (int i = 0; i < hx.Length; i++)
+        {
+            float wdx = (x - hx[i]) * sx;
+            float wdz = (z - hz[i]) * sz;
+            if (wdx * wdx + wdz * wdz < HoleWorldRadius * HoleWorldRadius) return true;
+        }
+        return false;
+    }
+
+    // 표면 아래 평행하게 깔린 낙사 트리거. 구멍으로 빠지면 곧장 즉사(처음부터).
+    static void EnsureKillSlab(GameObject s5)
+    {
+        var old = s5.transform.Find("KillSlab_Stage5");
+        if (old != null) Object.DestroyImmediate(old.gameObject);
+
+        var slab = new GameObject("KillSlab_Stage5");
+        slab.transform.SetParent(s5.transform, false);
+        slab.transform.localPosition = new Vector3(0f, -6f, 0f);   // 표면 아래
+        slab.transform.localRotation = Quaternion.identity;
+
+        var box = slab.AddComponent<BoxCollider>();
+        box.isTrigger = true;
+        box.size = new Vector3(14f, 8f, 14f);   // 평면(로컬 ~10)보다 넉넉히
+        slab.AddComponent<KillZone>();
+
+        Undo.RegisterCreatedObjectUndo(slab, "Create Stage5 KillSlab");
     }
 
     static void EnsureMixedSpawner(GameObject s5)
