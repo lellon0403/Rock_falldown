@@ -28,7 +28,14 @@ public class MathGate : MonoBehaviour
             return;
         }
 
-        if (questionLabel != null) questionLabel.text = question.questionText;
+        if (questionLabel != null)
+        {
+            questionLabel.text = question.questionText;
+            questionLabel.color = new Color(1f, 0.84f, 0.1f);   // 노란색 = 문제
+            questionLabel.fontStyle = FontStyles.Bold;
+            questionLabel.outlineColor = Color.black;
+            questionLabel.outlineWidth = 0.2f;
+        }
 
         // 정답을 좌/우 무작위 배치
         bool correctOnLeft = Random.value < 0.5f;
