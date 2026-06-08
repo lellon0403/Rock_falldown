@@ -32,7 +32,8 @@
 | **1** | 초원 (잔디+판석) | 일반 돌(회색 바위) | 튜토리얼 |
 | **2** | 얼음 빙판 | **거대 눈덩이(분열)** + 일반 강한 돌 + 랜덤 기둥 장애물 | 수학 게이트 |
 | **3** | 화산 고원 | **빠른 바위(빨강)** + 일반 돌 | 고속·짧은 반응시간 |
-| 4·5 | (예정) | 분열/혼합 / 보스 | Stage 5 = 바닥 구멍 컨셉(메모) |
+| **4** | 우주 (은하 바닥) | **투명 바위**(보임 2초/은신 3초, 물리는 일반과 동일) | 위치 기억해 회피 |
+| **5** | 우주 + 결승 | 모든 유형 혼합 + **바닥 구멍(즉사)** | 못 푸는 수학 게이트(어느 문이든 통과) → 평지 결승로 + 트로피 완주(타이머 종료) |
 
 ### 핵심 시스템 (구현됨)
 - **이동/물리**: Rigidbody, 돌 충돌 시 임펄스 넉백 → 짧게 감속 후 정지 ([PlayerMove](Assets/PlayerMove.cs)/[PlayerHit](Assets/PlayerHit.cs))
@@ -57,9 +58,12 @@
 |------|------|
 | Setup Game Systems | IQ매니저 · 좌상단 HUD(숫자+초상) · StageManager · 플레이어 색/넉백 값 일괄 셋업 |
 | Create Next Stage (map) | 마지막 스테이지 위로 다음 스테이지 **맵(평면)** 생성 (Stage_4, 5…) |
-| Create Math Gate at End of Stage 1 / 2 | 해당 스테이지 끝에 수학 게이트 배치 |
+| Create Math Gate at End of Stage 1 / 2 / 3 / 4 / 5 | 해당 스테이지 끝에 수학 게이트 배치 |
 | Setup Stage 2 Content | 거대 눈덩이(분열) + 랜덤 기둥 장애물 + 혼합 스폰 |
 | Setup Stage 3 Content (Fast Rocks) | 빠른 바위(빨강) + 혼합 스폰 |
+| Setup Stage 4 Content (Phasing Rocks) | 투명 바위 전용 스폰 |
+| Setup Stage 5 Content (Holes + Mixed Rocks) | 바닥 구멍(즉사) + 모든 바위 혼합 스폰 |
+| Setup Stage 5 Finish (Trophy + Timer) | 평지 결승로 + 완주 레일 + 트로피 + 타이머/완주 UI |
 | Import & Assign Ground Textures | 잔디/얼음/고원 바닥 텍스처를 각 스테이지에 적용 |
 | Import & Assign Portraits | 진화 초상 PNG를 HUD에 연결 |
 | Apply Rock Texture | 돌/눈덩이에 바위·눈 텍스처 입히기(무광) |
