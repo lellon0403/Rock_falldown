@@ -18,8 +18,7 @@ public static class Stage4ContentBuilder
         }
 
         var phasing = CreatePhasingRockPrefab();
-        var normal = AssetDatabase.LoadAssetAtPath<GameObject>("Assets/Prefabs/Rock.prefab");
-        EnsureStage4Spawner(s4, normal, phasing);
+        EnsureStage4Spawner(s4, phasing);
 
         AssetDatabase.SaveAssets();
         Debug.Log("[Stage4] 투명 바위 콘텐츠 적용 완료.");
