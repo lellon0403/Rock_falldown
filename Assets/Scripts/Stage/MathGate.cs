@@ -39,9 +39,12 @@ public class MathGate : MonoBehaviour
 
         if (question.anyAnswerCorrect)
         {
-            // 못 푸는 문제 — 어느 문으로 가도 통과 (양쪽 다 정답)
-            if (leftDoor != null) leftDoor.Setup(this, true, question.correctAnswer);
-            if (rightDoor != null) rightDoor.Setup(this, true, question.correctAnswer);
+            // 양쪽 다 정답 — 2차방정식의 두 근(서로 다른 값)을 각 문에 표시, 어느 쪽도 통과
+            bool swap = Random.value < 0.5f;
+            if (leftDoor != null)
+                leftDoor.Setup(this, true, swap ? question.wrongAnswer : question.correctAnswer);
+            if (rightDoor != null)
+                rightDoor.Setup(this, true, swap ? question.correctAnswer : question.wrongAnswer);
             return;
         }
 

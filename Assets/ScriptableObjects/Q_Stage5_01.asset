@@ -12,7 +12,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 7c1f2a3b4d5e6f708192a3b4c5d6e7f8, type: 3}
   m_Name: Q_Stage5_01
   m_EditorClassIdentifier:
-  questionText: "d/dx(x^3) + lim (1 + 1/n)^n - e = ?"
-  correctAnswer: 42
-  wrongAnswer: 42
+  questionText: "x^2 - 5x + 6 = 0,  x = ?"
+  correctAnswer: 2
+  wrongAnswer: 3
   anyAnswerCorrect: 1
