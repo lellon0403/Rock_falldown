@@ -17,10 +17,10 @@ public static class GroundImporter
         Apply($"{Dir}/ice.png", "Assets/Materials/Stage_Ice.mat", "Stage_2");
         Apply($"{Dir}/plateau.png", "Assets/Materials/Stage_Plateau.mat", "Stage_3");
         Apply($"{Dir}/space.png", "Assets/Materials/Stage_Space.mat", "Stage_4");
-        Apply($"{Dir}/space5.png", "Assets/Materials/Stage_Space5.mat", "Stage_5");
+        Apply($"{Dir}/heaven.png", "Assets/Materials/Stage_Heaven.mat", "Stage_5");   // 천국(천상계)
         Apply($"{Dir}/finish.png", "Assets/Materials/Stage_Finish.mat", "");   // 결승로 바닥 (FinishPath가 사용)
         AssetDatabase.SaveAssets();
-        Debug.Log("[GroundImporter] 바닥 텍스처 적용 완료 (1 잔디 / 2 얼음 / 3 고원 / 4 우주 / 5 성운 + 결승선).");
+        Debug.Log("[GroundImporter] 바닥 텍스처 적용 완료 (1 잔디 / 2 얼음 / 3 고원 / 4 우주 / 5 천국 + 결승선).");
     }
 
     static void Apply(string texPath, string matPath, string stageName)

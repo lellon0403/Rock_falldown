@@ -6,7 +6,8 @@ public class IQManager : MonoBehaviour
 {
     public static IQManager Instance { get; private set; }
 
-    [SerializeField] int startIQ = 60;   // 기본 IQ 60, 스테이지 클리어(게이트 정답)마다 +10
+    [SerializeField] int startIQ = 60;   // 기본 IQ 60, 게이트 정답마다 +30
+    [SerializeField] int maxIQ = 150;    // 천재(최고 티어) 상한. 게이트가 많아도 이 값을 넘지 않음
 
     public int CurrentIQ { get; private set; }
     public event Action<int> OnChanged;
@@ -25,7 +26,7 @@ public class IQManager : MonoBehaviour
 
     public void Add(int amount)
     {
-        CurrentIQ += amount;
+        CurrentIQ = Mathf.Min(CurrentIQ + amount, maxIQ);
         OnChanged?.Invoke(CurrentIQ);
     }
 

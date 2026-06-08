@@ -34,7 +34,7 @@ public static class Stage4ContentBuilder
         var rb = go.AddComponent<Rigidbody>();
         rb.mass = 50f;                                  // 일반 바위와 동일 질량
         go.AddComponent<RockDestroyer>();
-        go.AddComponent<Rock>().knockbackForce = 5f;    // 일반 바위와 동일 넉백
+        go.AddComponent<Rock>().knockbackForce = 40f;   // 일반 바위와 동일 넉백(PlayerHit 기본값 40)
         go.AddComponent<PhasingRock>();                 // 보임 2초 / 은신 3초 (기본값)
         go.GetComponent<MeshRenderer>().sharedMaterial = StarMat();
 

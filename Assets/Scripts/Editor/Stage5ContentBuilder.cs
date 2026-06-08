@@ -11,6 +11,51 @@ public static class Stage5ContentBuilder
 {
     const float MapWidth = 60f;
 
+    // ───────────────────────── 완전 새로 만들기 ─────────────────────────
+    // 기존 Stage_5가 누적 편집으로 망가졌을 때, Stage_4(깨끗한 표준 Plane)를 복제해
+    // 같은 위치·스케일로 Stage_5를 처음부터 다시 만든다 + 천국 머티리얼 + 구멍 + 바위.
+    [MenuItem("Tools/Rock Falldown/Rebuild Stage 5 (Fresh)")]
+    public static void RebuildStage5()
+    {
+        var s1 = GameObject.Find("Stage_1");
+        var s2 = GameObject.Find("Stage_2");
+        var s4 = GameObject.Find("Stage_4");
+        if (s1 == null || s2 == null || s4 == null)
+        {
+            Debug.LogWarning("[Stage5] Stage_1/Stage_2/Stage_4가 필요합니다."); return;
+        }
+
+        // 1) 기존 Stage_5 + 깎인 메시 에셋 제거
+        var old = GameObject.Find("Stage_5");
+        if (old != null) Object.DestroyImmediate(old);
+        AssetDatabase.DeleteAsset("Assets/Meshes/Stage5_Floor.mesh");
+
+        // 2) Stage_4 복제 → 깨끗한 표준 Plane으로 Stage_5 생성 (같은 간격으로 위에 적층)
+        Vector3 offset = s2.transform.position - s1.transform.position;
+        var go = Object.Instantiate(s4);
+        go.name = "Stage_5";
+        go.transform.SetPositionAndRotation(s4.transform.position + offset, s4.transform.rotation);
+        go.transform.localScale = s4.transform.localScale;
+        for (int i = go.transform.childCount - 1; i >= 0; i--)
+            Object.DestroyImmediate(go.transform.GetChild(i).gameObject);   // 스포너 등 자식 제거
+
+        // 3) 천국 머티리얼 (없으면 Import & Assign Ground Textures 먼저)
+        var heaven = AssetDatabase.LoadAssetAtPath<Material>("Assets/Materials/Stage_Heaven.mat");
+        var mr = go.GetComponent<MeshRenderer>();
+        if (heaven != null && mr != null) mr.sharedMaterial = heaven;
+        else Debug.LogWarning("[Stage5] Stage_Heaven.mat 없음 — 'Import & Assign Ground Textures' 먼저 실행하세요.");
+
+        Undo.RegisterCreatedObjectUndo(go, "Rebuild Stage 5");
+
+        // 4) 구멍 + 바위
+        GenerateHoledFloor(go);
+        EnsureMixedSpawner(go);
+
+        AssetDatabase.SaveAssets();
+        Selection.activeGameObject = go;
+        Debug.Log("[Stage5] Stage_5 새로 생성 완료 (천국 바닥 + 구멍 + 기본/빠른 바위).");
+    }
+
     // ───────────────────────── 구멍 + 혼합 스포너 ─────────────────────────
     [MenuItem("Tools/Rock Falldown/Setup Stage 5 Content (Holes + Mixed Rocks)")]
     public static void SetupContent()
@@ -18,19 +63,30 @@ public static class Stage5ContentBuilder
         var s5 = GameObject.Find("Stage_5");
         if (s5 == null) { Debug.LogWarning("[Stage5] Stage_5가 없습니다. 먼저 'Create Next Stage (map)'."); return; }
 
+        // 예전 낙사 트리거(KillSlab)는 더 이상 쓰지 않음 — 구멍에 빠지면 그냥 떨어져 y<=0에서 재시작.
+        var oldSlab = s5.transform.Find("KillSlab_Stage5");
+        if (oldSlab != null) Object.DestroyImmediate(oldSlab.gameObject);
+
         GenerateHoledFloor(s5);
-        EnsureKillSlab(s5);
         EnsureMixedSpawner(s5);
 
         AssetDatabase.SaveAssets();
-        Debug.Log("[Stage5] 실제 구멍 + 낙사 판정 + 혼합 바위 콘텐츠 적용 완료.");
+        Debug.Log("[Stage5] 구멍 뚫기 + 빠른 바위 콘텐츠 적용 완료 (낙사=떨어지면 재시작).");
     }
 
-    // (경사 따라 비율, 가로 비율, 월드 반지름) — 구멍 중심을 평면 로컬에 결정적으로 배치
+    // 정규화 좌표(평면 -1~1) 기준: { x(-1~1), y(-1~1), 반지름(half-extent 비율) }
+    // 스케일/회전에 의존하지 않아 어떤 평면이든 동일 비율로 구멍이 뚫린다.
+    // 작은 구멍(~0.13)과 그 1.5배(~0.20)까지, 겹치지 않게 불규칙 배치.
     static readonly float[,] HoleSpots = {
-        { 0.0f, 0.0f, 9.0f },   // 가운데 큰 구멍 (피해 가기 어려움)
-        {-0.6f,-0.55f, 3f},{-0.4f, 0.6f, 3f},
-        { 0.45f,-0.65f, 3f},{ 0.6f, 0.4f, 3f},
+        {-0.50f,-0.72f, 0.16f},
+        { 0.35f,-0.60f, 0.12f},
+        {-0.05f,-0.30f, 0.20f},   // 가장 큰 구멍 (작은 것의 약 1.5배)
+        { 0.60f,-0.15f, 0.13f},
+        {-0.62f,-0.05f, 0.11f},
+        { 0.15f, 0.25f, 0.15f},
+        {-0.40f, 0.50f, 0.13f},
+        { 0.55f, 0.55f, 0.17f},
+        {-0.05f, 0.75f, 0.12f},
     };
 
     // 평면 메시를 격자로 다시 만들면서 구멍 위치의 칸을 빼버린다 → 진짜로 뚫린 바닥.
@@ -47,26 +103,21 @@ public static class Stage5ContentBuilder
             Debug.LogWarning("[Stage5] Stage_5에 평면 MeshFilter가 없습니다."); return;
         }
 
-        Bounds b = mf.sharedMesh.bounds;                 // 로컬 평면 범위(보통 10×10)
+        // 이미 깎인 메시(Stage5_Floor)를 다시 읽으면 bounds 중심이 이동해 구멍이 밀린다.
+        // 항상 기본 Plane(중심 0, 10×10) 기준으로 고정해 가운데 구멍이 진짜 가운데에 오게 한다.
+        Bounds b;
+        if (mf.sharedMesh.name.StartsWith("Stage5_Floor"))
+        {
+            var tmp = GameObject.CreatePrimitive(PrimitiveType.Plane);
+            b = tmp.GetComponent<MeshFilter>().sharedMesh.bounds;
+            Object.DestroyImmediate(tmp);
+        }
+        else b = mf.sharedMesh.bounds;                   // 로컬 평면 범위(보통 10×10)
         float minX = b.center.x - b.size.x * 0.5f, maxX = b.center.x + b.size.x * 0.5f;
         float minZ = b.center.z - b.size.z * 0.5f, maxZ = b.center.z + b.size.z * 0.5f;
         float y = b.center.y;
+        float cX = b.center.x, cZ = b.center.z;
         float halfX = b.size.x * 0.5f, halfZ = b.size.z * 0.5f;
-
-        // 월드에서 둥근 구멍이 되도록 로컬 거리에 스케일 반영
-        Vector3 ls = s5.transform.lossyScale;
-        float sx = Mathf.Abs(ls.x) < 1e-4f ? 1f : ls.x;
-        float sz = Mathf.Abs(ls.z) < 1e-4f ? 1f : ls.z;
-
-        // 구멍 중심(로컬): along→Z, across→X 로 매핑, 반지름도 함께
-        int hn = HoleSpots.GetLength(0);
-        var hx = new float[hn]; var hz = new float[hn]; var hr = new float[hn];
-        for (int i = 0; i < hn; i++)
-        {
-            hx[i] = HoleSpots[i, 1] * halfX * 0.9f;
-            hz[i] = HoleSpots[i, 0] * halfZ * 0.9f;
-            hr[i] = HoleSpots[i, 2];
-        }
 
         // 격자 해상도 (칸 크기 ~ 로컬 0.2)
         int cx = Mathf.Clamp(Mathf.CeilToInt(b.size.x / 0.2f), 8, 200);
@@ -76,6 +127,7 @@ public static class Stage5ContentBuilder
         var uvs = new System.Collections.Generic.List<Vector2>();
         var tris = new System.Collections.Generic.List<int>();
 
+        int kept = 0, removed = 0;
         for (int iz = 0; iz < cz; iz++)
         {
             for (int ix = 0; ix < cx; ix++)
@@ -86,7 +138,11 @@ public static class Stage5ContentBuilder
                 float z1 = Mathf.Lerp(minZ, maxZ, (iz + 1) / (float)cz);
 
                 float mxp = (x0 + x1) * 0.5f, mzp = (z0 + z1) * 0.5f;
-                if (InAnyHole(mxp, mzp, hx, hz, hr, sx, sz)) continue;   // 구멍 칸은 건너뜀
+                // 정규화 좌표 (-1~1): across=u, along=v
+                float u = (mxp - cX) / halfX;
+                float v = (mzp - cZ) / halfZ;
+                if (InAnyHole(u, v)) { removed++; continue; }   // 구멍 칸은 건너뜀
+                kept++;
 
                 int baseIdx = verts.Count;
                 AddVert(verts, uvs, x0, y, z0, minX, maxX, minZ, maxZ);
@@ -114,6 +170,9 @@ public static class Stage5ContentBuilder
         if (existing != null) { EditorUtility.CopySerialized(mesh, existing); mesh = existing; }
         else AssetDatabase.CreateAsset(mesh, meshPath);
 
+        Debug.Log($"[Stage5] 구멍 메시 생성: bounds(size {b.size.x:F1}x{b.size.z:F1}, center {b.center}), " +
+                  $"격자 {cx}x{cz}, 남긴칸 {kept} / 뚫은칸 {removed} (구멍 {HoleSpots.GetLength(0)}개)");
+
         mf.sharedMesh = mesh;
         var mc = s5.GetComponent<MeshCollider>();
         if (mc == null) mc = s5.AddComponent<MeshCollider>();
@@ -131,41 +190,24 @@ public static class Stage5ContentBuilder
         uv.Add(new Vector2(Mathf.InverseLerp(minX, maxX, x), Mathf.InverseLerp(minZ, maxZ, z)));
     }
 
-    static bool InAnyHole(float x, float z, float[] hx, float[] hz, float[] hr, float sx, float sz)
+    // 정규화 좌표(-1~1)에서 어떤 구멍 원 안이면 true.
+    static bool InAnyHole(float u, float v)
     {
-        for (int i = 0; i < hx.Length; i++)
+        int n = HoleSpots.GetLength(0);
+        for (int i = 0; i < n; i++)
         {
-            float wdx = (x - hx[i]) * sx;
-            float wdz = (z - hz[i]) * sz;
-            if (wdx * wdx + wdz * wdz < hr[i] * hr[i]) return true;
+            float du = u - HoleSpots[i, 0];   // across
+            float dv = v - HoleSpots[i, 1];   // along
+            float r = HoleSpots[i, 2];
+            if (du * du + dv * dv < r * r) return true;
         }
         return false;
-    }
-
-    // 표면 아래 평행하게 깔린 낙사 트리거. 구멍으로 빠지면 곧장 즉사(처음부터).
-    static void EnsureKillSlab(GameObject s5)
-    {
-        var old = s5.transform.Find("KillSlab_Stage5");
-        if (old != null) Object.DestroyImmediate(old.gameObject);
-
-        var slab = new GameObject("KillSlab_Stage5");
-        slab.transform.SetParent(s5.transform, false);
-        slab.transform.localPosition = new Vector3(0f, -6f, 0f);   // 표면 아래
-        slab.transform.localRotation = Quaternion.identity;
-
-        var box = slab.AddComponent<BoxCollider>();
-        box.isTrigger = true;
-        box.size = new Vector3(14f, 8f, 14f);   // 평면(로컬 ~10)보다 넉넉히
-        slab.AddComponent<KillZone>();
-
-        Undo.RegisterCreatedObjectUndo(slab, "Create Stage5 KillSlab");
     }
 
     static void EnsureMixedSpawner(GameObject s5)
     {
         string[] paths = {
-            "Assets/Prefabs/Rock.prefab", "Assets/Prefabs/Rock_Fast.prefab",
-            "Assets/Prefabs/Rock_Splitting.prefab", "Assets/Prefabs/Rock_Phasing.prefab",
+            "Assets/Prefabs/Rock_Fast.prefab",   // 5스테이지는 빠른 바위만
         };
         var list = new System.Collections.Generic.List<GameObject>();
         foreach (var p in paths)
