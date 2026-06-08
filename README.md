@@ -83,7 +83,7 @@
 3. 스크립트 실행:
    - `python Tools/generate_ground.py` — 바닥(잔디/얼음/고원)
    - `python Tools/generate_rock.py` — 바위/눈
-   - `python Tools/generate_stage4.py` — 우주 바닥(space) + 별 바위(star) **(gpt-image-2 고정)**
+   - `python Tools/generate_stage4.py` — 우주 바닥(space) + 별 바위(star) + Stage5 성운(space5) + 결승선(finish) **(gpt-image-2 고정)**
    - `python Tools/generate_portraits.py` — 진화 초상
 4. Unity에서 해당 `Import/Apply` 메뉴 실행
 
