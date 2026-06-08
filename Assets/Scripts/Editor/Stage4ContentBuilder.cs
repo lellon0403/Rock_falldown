@@ -3,7 +3,7 @@ using UnityEngine;
 using UnityEditor;
 
 // 메뉴: Tools > Rock Falldown > Setup Stage 4 Content (Phasing Rocks)
-// Stage_4 에 '투명 바위' 프리팹 + 스포너(일반 + 투명 혼합)를 붙인다.
+// Stage_4 에 '투명 바위' 프리팹 + 스포너(투명 바위 전용)를 붙인다.
 // 투명 바위는 물리는 일반 바위와 동일하고, 보였다/사라졌다를 반복한다.
 public static class Stage4ContentBuilder
 {
@@ -75,9 +75,9 @@ public static class Stage4ContentBuilder
         return mat;
     }
 
-    static void EnsureStage4Spawner(GameObject s4, GameObject normal, GameObject phasing)
+    static void EnsureStage4Spawner(GameObject s4, GameObject phasing)
     {
-        var prefabs = (normal != null) ? new[] { normal, phasing } : new[] { phasing };
+        var prefabs = new[] { phasing };   // Stage 4는 투명 바위만
 
         // 이미 있으면 prefabs만 갱신
         foreach (var sp in Object.FindObjectsByType<RockSpawner>(FindObjectsSortMode.None))
