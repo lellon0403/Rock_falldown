@@ -27,9 +27,27 @@ public class RockSpawner : MonoBehaviour
     int[] lanes;
     bool spawning;
 
+    float killBelowY;
+    bool killYComputed;
+
     void Awake()
     {
         ComputeLanes();
+        ComputeKillY();
+    }
+
+    // 이 스포너가 속한 스테이지의 '아래 경계 Y'를 계산.
+    // 바위가 이 높이 밑으로 굴러내려가면(=스테이지를 벗어나면) 제거된다.
+    void ComputeKillY()
+    {
+        var s1 = GameObject.Find("Stage_1");
+        var s2 = GameObject.Find("Stage_2");
+        Transform stage = transform.parent;   // 스포너의 소속 스테이지
+        if (s1 == null || s2 == null || stage == null) return;
+
+        float dropPerStage = Mathf.Abs(s2.transform.position.y - s1.transform.position.y);
+        killBelowY = stage.position.y - dropPerStage * 0.5f;   // 스테이지 아래 경계
+        killYComputed = true;
     }
 
     void Start()
@@ -88,7 +106,14 @@ public class RockSpawner : MonoBehaviour
         GameObject prefab = (rockPrefabs != null && rockPrefabs.Length > 0)
             ? rockPrefabs[Random.Range(0, rockPrefabs.Length)]
             : rockPrefab;
-        if (prefab != null) Instantiate(prefab, spawnPos, Quaternion.identity);
+        if (prefab == null) return;
+
+        var rock = Instantiate(prefab, spawnPos, Quaternion.identity);
+        if (killYComputed)
+        {
+            var rd = rock.GetComponent<RockDestroyer>();
+            if (rd != null) rd.killBelowY = killBelowY;
+        }
     }
 
     // 프리팹의 메시/콜라이더에서 바위의 가로 지름을 잰다

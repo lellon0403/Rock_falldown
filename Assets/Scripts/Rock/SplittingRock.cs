@@ -44,6 +44,11 @@ public class SplittingRock : MonoBehaviour
                 var frag = Instantiate(fragmentPrefab, pos, Random.rotation);
                 frag.transform.localScale = Vector3.one * childScale;
 
+                // 본체의 스테이지 경계를 파편에도 물려줌 (스테이지 벗어나면 제거)
+                var myRd = GetComponent<RockDestroyer>();
+                var fragRd = frag.GetComponent<RockDestroyer>();
+                if (myRd != null && fragRd != null) fragRd.killBelowY = myRd.killBelowY;
+
                 var rb = frag.GetComponent<Rigidbody>();
                 if (rb != null) rb.AddForce(dir * scatterForce + Vector3.up, ForceMode.Impulse);
             }
