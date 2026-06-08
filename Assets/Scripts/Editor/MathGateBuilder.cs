@@ -39,6 +39,22 @@ public static class MathGateBuilder
         BuildGate(topEnd + Vector3.up * (Height * 0.5f), rot, "Assets/ScriptableObjects/Q_Stage2_02.asset");
     }
 
+    [MenuItem("Tools/Rock Falldown/Create Math Gate at End of Stage 3")]
+    public static void CreateGateStage3()
+    {
+        var s1 = GameObject.Find("Stage_1");
+        var s2 = GameObject.Find("Stage_2");
+        var s3 = GameObject.Find("Stage_3");
+        if (s1 == null || s2 == null || s3 == null) { Fallback("Assets/ScriptableObjects/Q_Stage3_01.asset"); return; }
+
+        // Stage_3 끝 = Stage_3 중심에서 경사 위로 반 스테이지 길이만큼
+        Vector3 slopeDir = (s2.transform.position - s1.transform.position).normalized;
+        float halfLen = Vector3.Distance(s1.transform.position, s2.transform.position) * 0.5f;
+        Vector3 topEnd = s3.transform.position + slopeDir * halfLen;
+        Quaternion rot = SlopeRotation(s1.transform.position, s2.transform.position);
+        BuildGate(topEnd + Vector3.up * (Height * 0.5f), rot, "Assets/ScriptableObjects/Q_Stage3_01.asset");
+    }
+
     static void Fallback(string qPath)
     {
         BuildGate(new Vector3(0f, Height * 0.5f, 40f), Quaternion.identity, qPath);
