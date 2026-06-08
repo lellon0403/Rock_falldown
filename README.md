@@ -42,7 +42,8 @@
 - **IQ 시스템**: 기본 60, 게이트 정답마다 **+30** ([IQManager](Assets/Scripts/System/IQManager.cs)), 좌상단 HUD 숫자([IQDisplay](Assets/Scripts/UI/IQDisplay.cs))
 - **캐릭터 진화**: IQ 구간 **60/90/120/150** → 좌상단 HUD 초상(2프레임 깜빡임, [PortraitDisplay](Assets/Scripts/UI/PortraitDisplay.cs)) + 플레이어 3D 색 변화([PlayerTint](Assets/Scripts/Player/PlayerTint.cs))
 - **스테이지별 스포너 제어**: 플레이어 위치에 따라 현재 스테이지 스포너만 작동(내려오면 재작동) ([StageManager](Assets/Scripts/System/StageManager.cs))
-- **장애물**: 표면 위 랜덤 배치 원기둥 ([ObstacleSpawner](Assets/Scripts/Stage/ObstacleSpawner.cs))
+- **장애물**: 표면 위 랜덤 배치 원기둥 ([ObstacleSpawner](Assets/Scripts/Stage/ObstacleSpawner.cs)), 바닥 구멍 즉사([KillZone](Assets/Scripts/Stage/KillZone.cs))
+- **완주/타이머**: 씬 시작부터 시간 측정([GameTimer](Assets/Scripts/System/GameTimer.cs)), 트로피 닿으면 종료+기록 표시([FinishTrophy](Assets/Scripts/Stage/FinishTrophy.cs)/[FinishScreen](Assets/Scripts/UI/FinishScreen.cs))
 - **아트**: 바닥/돌/초상 이미지를 GPT(gpt-image-2)로 생성해 적용 (아래 참고)
 
 ### 아직 없음 / 예정
@@ -82,6 +83,7 @@
 3. 스크립트 실행:
    - `python Tools/generate_ground.py` — 바닥(잔디/얼음/고원)
    - `python Tools/generate_rock.py` — 바위/눈
+   - `python Tools/generate_stage4.py` — 우주 바닥(space) + 별 바위(star) **(gpt-image-2 고정)**
    - `python Tools/generate_portraits.py` — 진화 초상
 4. Unity에서 해당 `Import/Apply` 메뉴 실행
 
