@@ -37,6 +37,14 @@ public class MathGate : MonoBehaviour
             questionLabel.outlineWidth = 0.2f;
         }
 
+        if (question.anyAnswerCorrect)
+        {
+            // 못 푸는 문제 — 어느 문으로 가도 통과 (양쪽 다 정답)
+            if (leftDoor != null) leftDoor.Setup(this, true, question.correctAnswer);
+            if (rightDoor != null) rightDoor.Setup(this, true, question.correctAnswer);
+            return;
+        }
+
         // 정답을 좌/우 무작위 배치
         bool correctOnLeft = Random.value < 0.5f;
 
